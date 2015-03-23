@@ -3,7 +3,7 @@ import simplejson
 import xlwt
 from pprint import pprint
 
-def get_price(typeID=34, scale='usesystem', scaleID=30002187):
+def get_price(typeID=34, scale='regionlimit', scaleID=10000043):
     # Generate api address on eve-central
     api_address = "http://api.eve-central.com/api/marketstat/json?typeid="+str(typeID)+"&"+scale+"="+str(scaleID)
     # Receive raw market JSON strings.
@@ -77,7 +77,7 @@ def main():
         ID = type_json[i]["ID"]
         name = type_json[i]["name"]
 
-        (buy_price, sell_price) = get_price(typeID=ID, scale='regionlimit', scaleID=10000043)
+        (buy_price, sell_price) = get_price(typeID=ID)
         if (buy_price != 0 and sell_price != 0):
             (profit, unit, profit_ratio) = unit_profit(buy_price, sell_price)
             profit_out = str("{:8.2f}".format(profit))+unit

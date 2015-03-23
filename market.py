@@ -1,6 +1,8 @@
 import urllib
 import simplejson
 import xlwt
+import sys
+import getopt
 from pprint import pprint
 
 def get_price(typeID=34, scale='regionlimit', scaleID=10000043):
@@ -77,7 +79,46 @@ def read_data():
     return type_json
 
 
-def main():
+def main(argv):
+    regionID = 10000043
+    systemID = 30002187
+    ID = 34
+    volume_threshold = 10
+    days = 10
+
+    region_flag = False
+    system_flag = False
+    item_flag = False
+
+    try:
+        opts, args = getopt.getopt(argv,"r:v:s:d:i:", ["region=","volume=","system=","days=","item="])
+    except getopt.GetoptError:
+        print 'python market.py -r <regionID> -v <volume_threshold> -s <systemID> -d <days_for_volume> -i <item>'
+        sys.exit(2)
+    for opt,arg in opts:
+        if opt in ("-r", "--region"):
+            regionID = arg
+            region_flag = True
+        elif opt in ("-v", "--volume"):
+            volume_threshold = int(arg)
+        elif opt in ("-s", "--system"):
+            systemID = arg
+            system_flag = True
+        elif opt in ("-d", "--days"):
+            days = int(arg)
+        elif opt in ("-i", "--item"):
+            ID = arg
+            item_flag = True
+    if (system_flag == True and region_flag == False):
+        print "Must specify the region ID which contains the system:", systemID
+        exit()
+    print "EVE market analyzer is generating the marketing date for:"
+    print "    Region:", regionID
+    if system_flag == True:
+        print "    System:", systemID
+    print "    The minimal average volume requirement in the past", days,"days is:", volume_threshold
+    outfile = "region_"+str(regionID)+"&volume_"+str(volume_threshold)+"&days_"+str(days)+".xls"
+
     type_json = read_data()
 
     book = xlwt.Workbook(encoding="utf-8")
@@ -96,11 +137,11 @@ def main():
         ID = type_json[i]["ID"]
         name = type_json[i]["name"]
 
-        (buy_price, sell_price) = get_price(typeID=ID)
+        (buy_price, sell_price) = get_price(typeID=ID, scaleID=regionID)
         if (buy_price != 0 and sell_price != 0):
             (profit, unit, profit_ratio) = unit_profit(buy_price, sell_price)
-            avg_volume = get_history(typeID=ID)
-            if avg_volume != 0 :
+            avg_volume = get_history(typeID=ID, regionID=regionID, days=days)
+            if avg_volume >= volume_threshold :
                 profit_out = str("{:8.2f}".format(profit))+unit
                 profit_ratio_out = str("{:8.2f}".format(profit_ratio))+"%"
 
@@ -113,11 +154,11 @@ def main():
                 sh.write(j,6,avg_volume)
                 print "Type ID:", ID, "|Item:", name, "|profit per order:", profit_out, "|profit ratio:", profit_ratio_out, "|average volume:", avg_volume
                 j = j+1
-        if j == 10:
-            exit()
+        if i == 20:
+            break
         i = i+1
 
-    book.save("profit.xls")
+    book.save(outfile)
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

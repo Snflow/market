@@ -159,8 +159,6 @@ def main(argv):
                 sh.write(j,6,avg_volume)
                 print "Type ID:", ID, "|Item:", name, "|profit per order:", profit_out, "|profit ratio:", profit_ratio_out, "|average volume:", avg_volume
                 j = j+1
-        if i == 10:
-            break
         i = i+1
 
     book.save(outfile)

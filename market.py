@@ -18,6 +18,24 @@ def get_price(typeID=34, scale='regionlimit', scaleID=10000043):
     return(buy_price, sell_price)
 
 
+def get_history(typeID=34, regionID=10000043, days=10):
+    api_address = "http://api.eve-marketdata.com/api/item_history2.json?char_name=market&region_ids="+str(regionID)+"&type_ids="+str(typeID)+"&days="+str(days)
+    history_file = urllib.urlopen(api_address)
+    history_json = history_file.read()
+    history_file.close()
+    history_data = simplejson.loads(history_json)
+
+    total_volume = 0
+    n_days = 0
+    for single_day in history_data["emd"]["result"]:
+        total_volume = total_volume + int(single_day["row"]["volume"])
+        n_days = n_days + 1
+    avg_volume = total_volume/max(1,n_days)
+    if n_days == 0:
+        avg_volume = 0
+    return avg_volume
+
+
 def broker_tax(buy_price, sell_price):
     # Broker fee ratio, affected by both skill and standings.
     broker_ratio = 0.0075
@@ -68,8 +86,9 @@ def main():
     sh.write(0,1,"Type ID")
     sh.write(0,2,"Buy Price")
     sh.write(0,3,"Sell Price")
-    sh.write(0,4,"Profit/order")
-    sh.write(0,5,"Profit_rate")
+    sh.write(0,4,"Profit per Order")
+    sh.write(0,5,"Profit Rate")
+    sh.write(0,6,"Average Volume")
 
     i = 0
     j = 1
@@ -80,16 +99,22 @@ def main():
         (buy_price, sell_price) = get_price(typeID=ID)
         if (buy_price != 0 and sell_price != 0):
             (profit, unit, profit_ratio) = unit_profit(buy_price, sell_price)
-            profit_out = str("{:8.2f}".format(profit))+unit
-            profit_ratio_out = str("{:8.2f}".format(profit_ratio))+"%"
-            sh.write(j,0,name)
-            sh.write(j,1,ID)
-            sh.write(j,2,buy_price)
-            sh.write(j,3,sell_price)
-            sh.write(j,4,profit_out)
-            sh.write(j,5,profit_ratio_out)
-            print "Type ID:", ID, "Item:", name, "profit per order:", profit_out, "profit ratio:", profit_ratio_out
-            j = j+1
+            avg_volume = get_history(typeID=ID)
+            if avg_volume != 0 :
+                profit_out = str("{:8.2f}".format(profit))+unit
+                profit_ratio_out = str("{:8.2f}".format(profit_ratio))+"%"
+
+                sh.write(j,0,name)
+                sh.write(j,1,ID)
+                sh.write(j,2,buy_price)
+                sh.write(j,3,sell_price)
+                sh.write(j,4,profit_out)
+                sh.write(j,5,profit_ratio_out)
+                sh.write(j,6,avg_volume)
+                print "Type ID:", ID, "|Item:", name, "|profit per order:", profit_out, "|profit ratio:", profit_ratio_out, "|average volume:", avg_volume
+                j = j+1
+        if j == 10:
+            exit()
         i = i+1
 
     book.save("profit.xls")

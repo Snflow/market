@@ -83,7 +83,7 @@ def main(argv):
     regionID = 10000043
     systemID = 30002187
     ID = 34
-    volume_threshold = 10
+    volume_threshold = 100
     days = 10
 
     region_flag = False
@@ -116,8 +116,10 @@ def main(argv):
     print "    Region:", regionID
     if system_flag == True:
         print "    System:", systemID
+        outfile = "system_"+str(systemID)+"&volume_"+str(volume_threshold)+"&days_"+str(days)+".xls"
+    else:
+        outfile = "region_"+str(regionID)+"&volume_"+str(volume_threshold)+"&days_"+str(days)+".xls"
     print "    The minimal average volume requirement in the past", days,"days is:", volume_threshold
-    outfile = "region_"+str(regionID)+"&volume_"+str(volume_threshold)+"&days_"+str(days)+".xls"
 
     type_json = read_data()
 
@@ -137,7 +139,10 @@ def main(argv):
         ID = type_json[i]["ID"]
         name = type_json[i]["name"]
 
-        (buy_price, sell_price) = get_price(typeID=ID, scaleID=regionID)
+        if system_flag:
+            (buy_price, sell_price) = get_price(typeID=ID, scale='usesystem', scaleID=systemID)
+        else:
+            (buy_price, sell_price) = get_price(typeID=ID, scaleID=regionID)
         if (buy_price != 0 and sell_price != 0):
             (profit, unit, profit_ratio) = unit_profit(buy_price, sell_price)
             avg_volume = get_history(typeID=ID, regionID=regionID, days=days)
@@ -154,7 +159,7 @@ def main(argv):
                 sh.write(j,6,avg_volume)
                 print "Type ID:", ID, "|Item:", name, "|profit per order:", profit_out, "|profit ratio:", profit_ratio_out, "|average volume:", avg_volume
                 j = j+1
-        if i == 20:
+        if i == 10:
             break
         i = i+1
 

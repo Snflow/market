@@ -57,19 +57,8 @@ def unit_profit(buy_price, sell_price):
     (broker, tax) = broker_tax(buy_price, sell_price)
 
     profit = sell_price - buy_price - broker - tax
-    profit_ratio = profit/(buy_price+non_zero)*100
-
-    if profit/1000000 < 1.0:
-        if profit/1000 < 1.0:
-            profit = profit
-            unit = " isk"
-        else:
-            profit = profit / 1000
-            unit = "K isk"
-    else:
-        profit = profit / 1000000
-        unit = "M isk"
-    return (profit, unit, profit_ratio)
+    profit_ratio = profit/(buy_price+non_zero)
+    return (profit, profit_ratio)
 
 
 def read_data():
@@ -134,6 +123,12 @@ def main(argv):
     sh.write(0,6,"Total Profit Available")
     sh.write(0,7,"Profit Rate [%]")
 
+    data_style = xlwt.XFStyle()
+    data_style.num_format_str = '#,##0.00'
+
+    percentage_style = xlwt.XFStyle()
+    percentage_style.num_format_str = '0.00%'
+
     i = 0
     j = 1
     while type_json[i]["ID"] != 'end':
@@ -145,25 +140,27 @@ def main(argv):
         else:
             (buy_price, sell_price) = get_price(typeID=ID, scaleID=regionID)
         if (buy_price != 0 and sell_price != 0):
-            (profit, unit, profit_ratio) = unit_profit(buy_price, sell_price)
+            (profit, profit_ratio) = unit_profit(buy_price, sell_price)
             avg_volume = get_history(typeID=ID, regionID=regionID, days=days)
             if avg_volume >= volume_threshold :
                 profit_total = avg_volume * profit
-                profit_out = str("{:8.2f}".format(profit))+unit
-                profit_ratio_out = "{:8.2f}".format(profit_ratio)
-                profit_total_out = str("{:8.2f}".format(profit_total))+unit
+                profit_out = "{:8.2f}".format(profit)
+                profit_ratio_out = "{:8.2f}".format(profit_ratio*100)
+                profit_total_out = "{:8.2f}".format(profit_total)
 
                 sh.write(j,0,name)
                 sh.write(j,1,ID)
-                sh.write(j,2,buy_price)
-                sh.write(j,3,sell_price)
-                sh.write(j,4,profit_out)
+                sh.write(j,2,buy_price,data_style)
+                sh.write(j,3,sell_price,data_style)
+                sh.write(j,4,profit,data_style)
                 sh.write(j,5,avg_volume)
-                sh.write(j,6,profit_total_out)
-                sh.write(j,7,profit_ratio_out)
+                sh.write(j,6,profit_total,data_style)
+                sh.write(j,7,profit_ratio,percentage_style)
                 print "Type ID:", ID, "|Item:", name, "|profit per order:", profit_out, "|profit ratio:", profit_ratio_out, "%", "|average volume:", avg_volume, "|total available profit:", profit_total_out
                 j = j+1
         i = i+1
+        if i == 20:
+            break
 
     book.save(outfile)
 

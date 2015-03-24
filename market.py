@@ -130,8 +130,9 @@ def main(argv):
     sh.write(0,2,"Buy Price")
     sh.write(0,3,"Sell Price")
     sh.write(0,4,"Profit per Order")
-    sh.write(0,5,"Profit Rate")
-    sh.write(0,6,"Average Volume")
+    sh.write(0,5,"Average Volume")
+    sh.write(0,6,"Total Profit Available")
+    sh.write(0,7,"Profit Rate [%]")
 
     i = 0
     j = 1
@@ -147,17 +148,20 @@ def main(argv):
             (profit, unit, profit_ratio) = unit_profit(buy_price, sell_price)
             avg_volume = get_history(typeID=ID, regionID=regionID, days=days)
             if avg_volume >= volume_threshold :
+                profit_total = avg_volume * profit
                 profit_out = str("{:8.2f}".format(profit))+unit
-                profit_ratio_out = str("{:8.2f}".format(profit_ratio))+"%"
+                profit_ratio_out = "{:8.2f}".format(profit_ratio)
+                profit_total_out = str("{:8.2f}".format(profit_total))+unit
 
                 sh.write(j,0,name)
                 sh.write(j,1,ID)
                 sh.write(j,2,buy_price)
                 sh.write(j,3,sell_price)
                 sh.write(j,4,profit_out)
-                sh.write(j,5,profit_ratio_out)
-                sh.write(j,6,avg_volume)
-                print "Type ID:", ID, "|Item:", name, "|profit per order:", profit_out, "|profit ratio:", profit_ratio_out, "|average volume:", avg_volume
+                sh.write(j,5,avg_volume)
+                sh.write(j,6,profit_total_out)
+                sh.write(j,7,profit_ratio_out)
+                print "Type ID:", ID, "|Item:", name, "|profit per order:", profit_out, "|profit ratio:", profit_ratio_out, "%", "|average volume:", avg_volume, "|total available profit:", profit_total_out
                 j = j+1
         i = i+1
 

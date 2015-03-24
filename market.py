@@ -101,7 +101,7 @@ def main(argv):
     if (system_flag == True and region_flag == False):
         print "Must specify the region ID which contains the system:", systemID
         exit()
-    print "EVE market analyzer is generating the marketing date for:"
+    print "EVE Market Analyzer is generating the marketing data for:"
     print "    Region:", regionID
     if system_flag == True:
         print "    System:", systemID
@@ -121,13 +121,20 @@ def main(argv):
     sh.write(0,4,"Profit per Order")
     sh.write(0,5,"Average Volume")
     sh.write(0,6,"Total Profit Available")
-    sh.write(0,7,"Profit Rate [%]")
+    sh.write(0,7,"Profit Rate")
 
-    data_style = xlwt.XFStyle()
-    data_style.num_format_str = '#,##0.00'
-
+    price_style = xlwt.XFStyle()
+    price_style.num_format_str = '#,##0.00'
+    num_style = xlwt.XFStyle()
+    num_style.num_format_str = '#,##0'
     percentage_style = xlwt.XFStyle()
     percentage_style.num_format_str = '0.00%'
+
+    sh.col(0).width = 256*20
+    sh.col(1).width = 256*7
+    sh.col(4).width = 256*16
+    sh.col(5).width = 256*16
+    sh.col(6).width = 256*22
 
     i = 0
     j = 1
@@ -144,23 +151,18 @@ def main(argv):
             avg_volume = get_history(typeID=ID, regionID=regionID, days=days)
             if avg_volume >= volume_threshold :
                 profit_total = avg_volume * profit
-                profit_out = "{:8.2f}".format(profit)
-                profit_ratio_out = "{:8.2f}".format(profit_ratio*100)
-                profit_total_out = "{:8.2f}".format(profit_total)
 
                 sh.write(j,0,name)
                 sh.write(j,1,ID)
-                sh.write(j,2,buy_price,data_style)
-                sh.write(j,3,sell_price,data_style)
-                sh.write(j,4,profit,data_style)
-                sh.write(j,5,avg_volume)
-                sh.write(j,6,profit_total,data_style)
+                sh.write(j,2,buy_price,price_style)
+                sh.write(j,3,sell_price,price_style)
+                sh.write(j,4,profit,price_style)
+                sh.write(j,5,avg_volume,num_style)
+                sh.write(j,6,profit_total,price_style)
                 sh.write(j,7,profit_ratio,percentage_style)
-                print "Type ID:", ID, "|Item:", name, "|profit per order:", profit_out, "|profit ratio:", profit_ratio_out, "%", "|average volume:", avg_volume, "|total available profit:", profit_total_out
+                print "Type ID:", ID, ",    Item:", name
                 j = j+1
         i = i+1
-        if i == 20:
-            break
 
     book.save(outfile)
 

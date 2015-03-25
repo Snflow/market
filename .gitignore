@@ -1,5 +1,5 @@
 *.swp
 data
-*.xls
+*.xls*
 test
 *.pyc

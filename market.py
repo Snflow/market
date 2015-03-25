@@ -12,6 +12,9 @@ def get_price(typeID=34, scale='regionlimit', scaleID=10000043):
     market_file = urllib.urlopen(api_address)
     market_json = market_file.read()
     market_file.close()
+    if market_json=='A non-marketable type was given':
+        # Non-marketable item
+        return(0.0, 0.0)
     # Un-serialize the JSON data to a Python dict.
     market_data = simplejson.loads(market_json)
     # Get buy and sell prices.
@@ -160,9 +163,10 @@ def main(argv):
                 sh.write(j,5,avg_volume,num_style)
                 sh.write(j,6,profit_total,price_style)
                 sh.write(j,7,profit_ratio,percentage_style)
-                print "Type ID:", ID, ",    Item:", name
+#                print "Type ID:", ID, ",    Item:", name
                 j = j+1
         i = i+1
+        print "Type ID:", ID, ",    Item:", name
 
     book.save(outfile)
 

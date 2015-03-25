@@ -1,6 +1,7 @@
 import simplejson
 import xlrd
-from pprint import pprint
+
+import download
 
 file = xlrd.open_workbook('invTypes.xls')
 sh = file.sheet_by_index(0)
@@ -8,6 +9,7 @@ sh = file.sheet_by_index(0)
 outfile = open('data','w')
 outfile.write('[')
 
+print "\nConverting the 'xls' file to json data"
 #sh.nrows: the number of rows in the sheet
 for i in range(2,sh.nrows+1):
     line = i-1
@@ -18,7 +20,7 @@ for i in range(2,sh.nrows+1):
         unit = {'ID': unit_typeID, 'name': unit_name}
         unit_obj = simplejson.dumps(unit)
         unit_json = simplejson.loads(unit_obj)
-        print unit_json["ID"]
+#        print unit_json["ID"]
         outfile.write(unit_obj+',')
 
 end = {'ID': 'end'}
@@ -26,4 +28,4 @@ end_obj = simplejson.dumps(end)
 outfile.write(end_obj+']')
 outfile.close()
 
-print "Total rows in the sheet:", sh.nrows
+print "Done, total rows in the sheet:", sh.nrows

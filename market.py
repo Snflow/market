@@ -3,6 +3,7 @@ import simplejson
 import xlwt
 import sys
 import getopt
+import os.path
 from pprint import pprint
 
 def get_price(typeID=34, scale='regionlimit', scaleID=10000043):
@@ -65,6 +66,8 @@ def unit_profit(buy_price, sell_price):
 
 
 def read_data():
+    if not os.path.isfile('data'):
+        import typeID
     file = open('data')
     type_json = simplejson.load(file)
     file.close()
